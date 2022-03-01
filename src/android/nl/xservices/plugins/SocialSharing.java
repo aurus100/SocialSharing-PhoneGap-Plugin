@@ -51,6 +51,7 @@ public class SocialSharing extends CordovaPlugin {
   private static final String ACTION_SHARE_VIA_TWITTER_EVENT = "shareViaTwitter";
   private static final String ACTION_SHARE_VIA_FACEBOOK_EVENT = "shareViaFacebook";
   private static final String ACTION_SHARE_VIA_FACEBOOK_WITH_PASTEMESSAGEHINT = "shareViaFacebookWithPasteMessageHint";
+  private static final String ACTION_SHARE_VIA_FACEBOOK_STORY= "shareViaFacebookStory";
   private static final String ACTION_SHARE_VIA_WHATSAPP_EVENT = "shareViaWhatsApp";
   private static final String ACTION_SHARE_VIA_INSTAGRAM_EVENT = "shareViaInstagram";
   private static final String ACTION_SHARE_VIA_SMS_EVENT = "shareViaSMS";
@@ -64,6 +65,7 @@ public class SocialSharing extends CordovaPlugin {
   private CallbackContext _callbackContext;
 
   private String pasteMessage;
+  private String newShareType;
 
   private abstract class SocialSharingRunnable implements Runnable {
     public CallbackContext callbackContext;
@@ -77,6 +79,7 @@ public class SocialSharing extends CordovaPlugin {
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
     this._callbackContext = callbackContext; // only used for onActivityResult
     this.pasteMessage = null;
+    this.newShareType = null;
     if (ACTION_AVAILABLE_EVENT.equals(action)) {
       callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
       return true;
@@ -90,6 +93,9 @@ public class SocialSharing extends CordovaPlugin {
       return doSendIntent(callbackContext, args.getString(0), args.getString(1), args.isNull(3) ? args.getJSONArray(2) : new JSONArray(), args.getString(3), "com.facebook.katana", null, false, true, "com.facebook.composer.shareintent");
     } else if (ACTION_SHARE_VIA_FACEBOOK_WITH_PASTEMESSAGEHINT.equals(action)) {
       this.pasteMessage = args.getString(4);
+      return doSendIntent(callbackContext, args.getString(0), args.getString(1), args.isNull(3) ? args.getJSONArray(2) : new JSONArray(), args.getString(3), "com.facebook.katana", null, false, true, "com.facebook.composer.shareintent");
+    } else if (ACTION_SHARE_VIA_FACEBOOK_STORY.equals(action)) {
+      this.newShareType = "shareStory";
       return doSendIntent(callbackContext, args.getString(0), args.getString(1), args.isNull(3) ? args.getJSONArray(2) : new JSONArray(), args.getString(3), "com.facebook.katana", null, false, true, "com.facebook.composer.shareintent");
     } else if (ACTION_SHARE_VIA_WHATSAPP_EVENT.equals(action)) {
       if (notEmpty(args.getString(4))) { // abid
@@ -269,7 +275,7 @@ public class SocialSharing extends CordovaPlugin {
       public void run() {
         String message = msg;
         final boolean hasMultipleAttachments = files.length() > 1;
-        final Intent sendIntent = new Intent(hasMultipleAttachments ? Intent.ACTION_SEND_MULTIPLE : Intent.ACTION_SEND);
+        final Intent sendIntent = new Intent(newShareType != null && "shareStory".equals(newShareType) ? "com.facebook.stories.ADD_TO_STORY" : hasMultipleAttachments ? Intent.ACTION_SEND_MULTIPLE : Intent.ACTION_SEND);
         final Intent receiverIntent = new Intent(cordova.getActivity().getApplicationContext(), ShareChooserPendingIntent.class);
         final PendingIntent pendingIntent = PendingIntent.getBroadcast(cordova.getActivity().getApplicationContext(), 0, receiverIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         sendIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
@@ -286,9 +292,14 @@ public class SocialSharing extends CordovaPlugin {
                 fileUris.add(fileUri);
               }
               if (!fileUris.isEmpty()) {
+                if(newShareType != null && "shareStory".equals(newShareType)){
+                  sendIntent.setDataAndType(fileUri, "image/jpeg");
+                  sendIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                }
                 if (hasMultipleAttachments) {
                   sendIntent.putExtra(Intent.EXTRA_STREAM, fileUris);
                 } else {
+        
                   sendIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
                 }
               }
