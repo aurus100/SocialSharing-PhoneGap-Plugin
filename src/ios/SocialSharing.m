@@ -654,10 +654,17 @@ static NSString *const kShareOptionIPadCoordinates = @"iPadCoordinates";
     if (content != nil) {
         _documentInteractionController = [UIDocumentInteractionController interactionControllerWithURL:[content getUrl]];
         _documentInteractionController.delegate = self;
+        // if ([content getType] == VIDEO) {
+        //     _documentInteractionController.UTI = @"public.movie";
+        // } else if ([content getType] == IMAGE) {
+        //     _documentInteractionController.UTI = @"public.image";
+        // } else if ([content getType] == AUDIO) {
+        //     _documentInteractionController.UTI = @"public.audio";
+        // }
         if ([content getType] == VIDEO) {
-            _documentInteractionController.UTI = @"public.movie";
+            _documentInteractionController.UTI = @"net.whatsapp.movie";
         } else if ([content getType] == IMAGE) {
-            _documentInteractionController.UTI = @"public.image";
+            _documentInteractionController.UTI = @"net.whatsapp.movie";
         } else if ([content getType] == AUDIO) {
             _documentInteractionController.UTI = @"public.audio";
         }
