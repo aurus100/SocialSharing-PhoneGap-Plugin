@@ -642,10 +642,13 @@ static NSString *const kShareOptionIPadCoordinates = @"iPadCoordinates";
     NSString *urlString = [command.arguments objectAtIndex:3];
     NSString *abid = [command.arguments objectAtIndex:4];
     NSString *phone = [command.arguments objectAtIndex:5];
+    NSString *imageName ;
 
     // only use the first image (for now.. maybe we can share in a loop?)
     ShareContent *content = nil;
     for (NSString *filename in filenames) {
+        NSLog(@"Filemane: %@", filename);
+        imageName = filename;
         content = [self getShareContent:filename];
         break;
     }
@@ -666,7 +669,7 @@ static NSString *const kShareOptionIPadCoordinates = @"iPadCoordinates";
             
             _documentInteractionController = [UIDocumentInteractionController interactionControllerWithURL:[NSURL fileURLWithPath:savePath]];
             _documentInteractionController.UTI = @"net.whatsapp.image"; // TODO find the scheme for google drive and create a shareViaGoogleDrive function
-            [_documentInteractionController presentOpenInMenuFromRect:CGRectZero inView:controller.view animated:YES];
+            [_documentInteractionController presentOpenInMenuFromRect:CGRectZero inView:self.viewController.view animated:YES];
         }
         // if ([content getType] == VIDEO) {
         //     _documentInteractionController.UTI = @"public.movie";
