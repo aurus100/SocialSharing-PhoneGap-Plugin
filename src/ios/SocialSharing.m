@@ -642,13 +642,10 @@ static NSString *const kShareOptionIPadCoordinates = @"iPadCoordinates";
     NSString *urlString = [command.arguments objectAtIndex:3];
     NSString *abid = [command.arguments objectAtIndex:4];
     NSString *phone = [command.arguments objectAtIndex:5];
-    NSString *imageName ;
 
     // only use the first image (for now.. maybe we can share in a loop?)
     ShareContent *content = nil;
     for (NSString *filename in filenames) {
-        NSLog(@"Filemane: %@", filename);
-        imageName = filename;
         content = [self getShareContent:filename];
         break;
     }
@@ -657,20 +654,6 @@ static NSString *const kShareOptionIPadCoordinates = @"iPadCoordinates";
     if (content != nil) {
         _documentInteractionController = [UIDocumentInteractionController interactionControllerWithURL:[content getUrl]];
         _documentInteractionController.delegate = self;
-        UIImage *image = [self getImage:imageName];
-        
-        if (image != nil) {
-            NSString *savePath = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/myTempImage.wai"];
-             NSLog(@"Filemane: %@", savePath);
-            [UIImageJPEGRepresentation(image, 1.0) writeToFile:savePath atomically:YES];
-            // NSArray *items = @[image];
-            // UIActivityViewController *controller = [[UIActivityViewController alloc]initWithActivityItems:items applicationActivities:nil];
-            // [[self getTopMostViewController] presentViewController:controller animated:YES completion:nil];
-            
-            _documentInteractionController = [UIDocumentInteractionController interactionControllerWithURL:[NSURL fileURLWithPath:savePath]];
-            _documentInteractionController.UTI = @"net.whatsapp.image"; // TODO find the scheme for google drive and create a shareViaGoogleDrive function
-            [_documentInteractionController presentOpenInMenuFromRect:CGRectZero inView:self.viewController.view animated:YES];
-        }
         // if ([content getType] == VIDEO) {
         //     _documentInteractionController.UTI = @"public.movie";
         // } else if ([content getType] == IMAGE) {
@@ -678,15 +661,15 @@ static NSString *const kShareOptionIPadCoordinates = @"iPadCoordinates";
         // } else if ([content getType] == AUDIO) {
         //     _documentInteractionController.UTI = @"public.audio";
         // }
-        // if ([content getType] == VIDEO) {
-        //     _documentInteractionController.UTI = @"net.whatsapp.movie";
-        // } else if ([content getType] == IMAGE) {
-        //     _documentInteractionController.UTI = @"net.whatsapp.image";
-        // } else if ([content getType] == AUDIO) {
-        //     _documentInteractionController.UTI = @"public.audio";
-        // }
-        // _command = command;
-        // [_documentInteractionController presentOpenInMenuFromRect:CGRectZero inView:self.viewController.view animated:YES];
+        if ([content getType] == VIDEO) {
+            _documentInteractionController.UTI = @"net.whatsapp.movie";
+        } else if ([content getType] == IMAGE) {
+            _documentInteractionController.UTI = @"net.whatsapp.image";
+        } else if ([content getType] == AUDIO) {
+            _documentInteractionController.UTI = @"public.audio";
+        }
+        _command = command;
+        [_documentInteractionController presentOpenInMenuFromRect:CGRectZero inView:self.viewController.view animated:YES];
     } else {
         // append an url to a message, if both are passed
         NSString *shareString = @"";
